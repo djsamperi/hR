@@ -1,0 +1,4 @@
+module Foreign.R.Config where
+
+rHome :: FilePath
+rHome = "@R_HOME@"

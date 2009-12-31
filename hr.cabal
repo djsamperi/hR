@@ -1,0 +1,21 @@
+Name:		hr
+Version:	0.1
+Cabal-Version:  >= 1.6
+Author:		Dylan Simon
+Maintainer:     dylan@dylex.net
+License:        BSD3
+Synopsis:	R bindings and interface
+Description:	This package aims to provide a comprehensive interface to the R libraries and native data structures.
+Category:	Foreign,Math
+build-type:	Custom
+tested-with:    GHC == 6.10.4
+extra-source-files: configure hr.buildinfo.in Foreign/R/Config.hs.in
+extra-tmp-files: hr.buildinfo Foreign/R/Config.hs
+
+Library
+    Build-depends:	base, unix, array, containers
+    Exposed-modules:	Foreign.R, Foreign.R.Types, Foreign.R.Internals, Foreign.R.SEXP, Foreign.R.SExp, Foreign.R.Error, Foreign.R.Embedded
+    Other-modules:      Foreign.R.Config, Foreign.R.Util
+    C-sources:		src/hr.c
+    Extensions:         ForeignFunctionInterface, EmptyDataDecls
+    ghc-options:        -Wall -fno-warn-name-shadowing
