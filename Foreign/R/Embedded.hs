@@ -21,7 +21,7 @@ foreign import ccall safe "Rf_endEmbeddedR"  rf_endEmbeddedR  :: CInt -> IO ()
 -- |Initializes the R library and environment, passing the specified strings as command name and arguments.
 -- 'end' must be called when finished.
 initialize :: Maybe (String, [String]) -> IO ()
-initialize Nothing = initialize (Just ("HR", ["--gui=none", "--silent"]))
+initialize Nothing = initialize (Just ("HR", ["--gui=none", "--silent", "--vanilla"]))
 initialize (Just (arg0,args)) = do
   setEnv "R_HOME" rHome False
   r <- withMany withCString (arg0:args) $ \a -> withArrayLen a (rf_initEmbeddedR . ii)

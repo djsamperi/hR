@@ -5,6 +5,9 @@ module Foreign.R.SExp
   , SAssocs
   , SFormals
   , SEnv(..)
+  , sEnvFrame, sEnvEnclos
+  , SClo(..)
+  , SLang(..)
   , sImp
   , sCall
   ) where
@@ -45,17 +48,17 @@ data SLang = SLang
   } deriving (Eq, Show)
 
 data SExp
-  = SNil -- ^ The NULL value, empty lists, etc.
+  = SNull -- ^ The NULL value, empty lists, etc.
   | SSymbol !SName -- ^ An identifier
   | SUnboundValue
   | SMissingArg
-  | SList SList -- ^ A tagged pairlist
-  | SClosure SClo -- ^ A function definition
-  | SEnvironment SEnv -- ^ A scope containing bindings [mutable]
+  | SList !SList -- ^ A tagged pairlist
+  | SClosure !SClo -- ^ A function definition
+  | SEnvironment !SEnv -- ^ A scope containing bindings [mutable]
   -- promise -- ^ A thunk (value is R_UnboundValue for uninitialized)
-  | SLanguage SLang -- ^ An unevaluated function call
-  -- special -- ^ A special language construct (funtable offset only, unevaluated args) [internal]
-  -- builtin -- ^ A language builtin function (funtable offset only, evaluated args) [internal]
+  | SLanguage !SLang -- ^ An unevaluated function call
+  | SSpecial (SEXP SSPECIAL) -- ^ A special language construct (funtable offset only, unevaluated args) [internal]
+  | SBuiltin (SEXP SBUILTIN) -- ^ A language builtin function (funtable offset only, evaluated args) [internal]
   | SChar !SString -- ^ A scalar string (vector of characters) [internal]
   | SLogical (Vector SLogical)
   | SInteger (Vector SInteger)
@@ -69,10 +72,11 @@ data SExp
   -- bytecode
   -- extptr
   -- weakref
-  -- raw
+  | SRaw (Vector SRaw)
   -- s4
 
   | SAttributes SAssocs SExp -- ^ Transparent attributes
+  | SFactor (Vector SString) (Vector SInteger)
   deriving (Show, Eq)
 
 instance NA SExp where
@@ -150,8 +154,11 @@ instance SData SLIST SFormals where
     rSET_TAG c (unSEXP t)
     return $ SEXP c
 
+sAssocsFromList :: SList -> SAssocs
+sAssocsFromList = Map.fromListWith const . mapMaybe (\(t,a) -> fmap (\t -> (t,a)) t)
+
 instance SData (Maybe SLIST) SAssocs where
-  sImp = Map.fromListWith const . mapMaybe (\(t,a) -> fmap (\t -> (t,a)) t) .=< sImp
+  sImp = sAssocsFromList .=< sImp
   sNew = sNew . map (\(t,v) -> (Just t,v)) . Map.assocs
 
 instance SData SCLO SClo where
@@ -253,9 +260,14 @@ instance SData (Vector SSTR) (Vector SString) where
 instance SData SANY SExp where
   sGet s' = do
     t <- sTYPEOF s'
-    a <- liftMaybeSEXP (sGet . sJust) =<< sGetAttrib s'
-    maybe id (liftM . SAttributes) a $ case t of
-      NILSXP -> return SNil
+    a <- liftMaybeSEXP (sGet . sJust) =<< sATTRIB s'
+    let af = case (t, a) of 
+	  (_, Nothing) -> id
+	  (INTSXP, Just [(Just "levels", SString l), (Just "class", SString [Just "factor"])]) -> liftM (\(SInteger x) -> SFactor l x)
+	  (INTSXP, Just [(Just "class", SString [Just "factor"]), (Just "levels", SString l)]) -> liftM (\(SInteger x) -> SFactor l x)
+	  (_, Just a) -> liftM $ SAttributes $ sAssocsFromList a
+    af $ case t of
+      NILSXP -> return SNull
       SYMSXP -> let s = unsafeCastSEXP s' :: SEXP SSYM in do
 	m <- sMissingArg
 	u <- sUnboundValue
@@ -268,6 +280,8 @@ instance SData SANY SExp where
       ENVSXP -> SEnvironment =.< sGet (unsafeCastSEXP s' :: SEXP SENV)
       CLOSXP -> SClosure =.< sGet (unsafeCastSEXP s' :: SEXP SCLO)
       LANGSXP -> SLanguage =.< sGet (unsafeCastSEXP s' :: SEXP SLANG)
+      SPECIALSXP -> return $ SSpecial (unsafeCastSEXP s' :: SEXP SSPECIAL)
+      BUILTINSXP -> return $ SBuiltin (unsafeCastSEXP s' :: SEXP SBUILTIN)
       CHARSXP -> SChar =.< sGet (unsafeCastSEXP s' :: SEXPVec SCHAR)
       LGLSXP -> SLogical =.< sGet (unsafeCastSEXP s' :: SEXPVec SLGL)
       INTSXP -> SInteger =.< sGet (unsafeCastSEXP s' :: SEXPVec SINT)
@@ -276,8 +290,10 @@ instance SData SANY SExp where
       STRSXP -> SString =.< sGet (unsafeCastSEXP s' :: SEXPVec SSTR)
       VECSXP -> SVector =.< sGet (unsafeCastSEXP s' :: SEXPVec SVEC)
       EXPRSXP -> SExpression =.< sGet (unsafeCastSEXP s' :: SEXPVec SEXPR)
+      RAWSXP -> SRaw =.< sGet (unsafeCastSEXP s' :: SEXPVec SRAW)
+      _ -> fail ("sGet: unsupported type " ++ show t)
 
-  sNew SNil = anySEXP =.< (sNew () :: IO (SEXP SNIL))
+  sNew SNull = anySEXP =.< (sNew () :: IO (SEXP SNIL))
   sNew (SSymbol x) = anySEXP =.< (sNew x :: IO (SEXP SSYM))
   sNew SUnboundValue = anySEXP =.< sUnboundValue
   sNew SMissingArg = anySEXP =.< sMissingArg
@@ -285,6 +301,8 @@ instance SData SANY SExp where
   sNew (SEnvironment x) = anySEXP =.< (sNew x :: IO (SEXP SENV))
   sNew (SClosure x) = anySEXP =.< (sNew x :: IO (SEXP SCLO))
   sNew (SLanguage x) = anySEXP =.< (sNew x :: IO (SEXP SLANG))
+  sNew (SSpecial x) = return $ anySEXP x
+  sNew (SBuiltin x) = return $ anySEXP x
   sNew (SChar x) = anySEXP =.< (sNew x :: IO (SEXPVec SCHAR))
   sNew (SLogical x) = anySEXP =.< (sNew x :: IO (SEXPVec SLGL))
   sNew (SInteger x) = anySEXP =.< (sNew x :: IO (SEXPVec SINT))
@@ -293,10 +311,12 @@ instance SData SANY SExp where
   sNew (SString x) = anySEXP =.< (sNew x :: IO (SEXPVec SSTR))
   sNew (SVector x) = anySEXP =.< (sNew x :: IO (SEXPVec SVEC))
   sNew (SExpression x) = anySEXP =.< (sNew x :: IO (SEXPVec SEXPR))
+  sNew (SRaw x) = anySEXP =.< (sNew x :: IO (SEXPVec SRAW))
   sNew (SAttributes a x) = do
     s <- sNew x
     sSetAttributes s a
     return s
+  sNew (SFactor l x) = sNew $ SAttributes (Map.fromList [("class", SString [Just "factor"]), ("levels", SString l)]) (SInteger x)
 
 instance SData (Vector SVEC) (Vector SExp) where
   sImp = mapM sGet
@@ -306,11 +326,18 @@ instance SData (Vector SEXPR) (Vector SExp) where
   sImp = mapM (sGet . unSEXPR)
   sExp = mapM (SEXPR .=< sNew)
 
+instance SData SRAW SRaw where
+  sImp = return
+  sExp = return
+instance SData (Vector SRAW) (Vector SRaw) where
+  sImp = return
+  sExp = return
+
 sGetAttributes :: SData (Maybe SLIST) b => SEXP a -> IO b
-sGetAttributes = sGet <=< sGetAttrib
+sGetAttributes = sGet <=< sATTRIB
 
 sSetAttributes :: SData (Maybe SLIST) b => SEXP a -> b -> IO ()
-sSetAttributes s = sSetAttrib s <=< sNew
+sSetAttributes s = sSET_ATTRIB s <=< sNew
 
 sCall :: SName -> SList -> IO SExp
 sCall f a = do

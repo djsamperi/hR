@@ -267,7 +267,7 @@ rSET_STRING_ELT s i v = void $ withREXP s $ \s -> withREXP v $ \v -> r_SET_STRIN
 -- FIXME do not use:
 foreign import ccall safe "VECTOR_PTR" r_VECTOR_PTR :: R_EXP -> IO (Ptr R_EXP)
 rVECTOR_PTR :: REXP -> IO (Ptr REXP)
-rVECTOR_PTR s = castPtr =.< withREXP s r_VECTOR_PTR
+rVECTOR_PTR s = fail "rVECTOR_PTR: unsafe" >> (castPtr =.< withREXP s r_VECTOR_PTR)
 
 foreign import ccall safe "VECTOR_ELT" r_VECTOR_ELT :: R_EXP -> CInt -> IO R_EXP
 rVECTOR_ELT :: REXP -> Int -> IO REXP

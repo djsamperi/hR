@@ -10,6 +10,7 @@ module Foreign.R.SEXP
   , sGlobalEnv, sEmptyEnv, sBaseEnv
   , sBracket2Symbol, sBracketSymbol, sBraceSymbol, sClassSymbol, sDimNamesSymbol, sDimSymbol, sDollarSymbol, sDotsSymbol, sDropSymbol, sLevelsSymbol, sModeSymbol, sNamesSymbol, sRowNamesSymbol, sSeedsSymbol, sTspSymbol
   , sCharString, sAllocString
+  , sATTRIB, sSET_ATTRIB
   , sGetAttrib, sSetAttrib
   , sEval, sTryEval
   ) where
@@ -318,6 +319,11 @@ instance SVector SVEC where
   sVectorWrite s l = do
     n <- sVectorLength s
     zipWithM_ (sVectorSet s) (enumFromTo 0 (pred n)) l
+  sVectorAlloc l = do
+    let n = length l
+    s <- SEXP =.< rAllocVector VECSXP n
+    zipWithM_ (sVectorSet s) (enumFromTo 0 (pred n)) l
+    return s
 
 deriving instance Storable SEXPR
 instance SDATA (Vector SEXPR) where
@@ -332,12 +338,25 @@ instance SVector SEXPR where
   sVectorWrite s l = do
     n <- sVectorLength s
     zipWithM_ (sVectorSet s) (enumFromTo 0 (pred n)) l
+  sVectorAlloc l = do
+    let n = length l
+    s <- SEXP =.< rAllocVector EXPRSXP n
+    zipWithM_ (sVectorSet s) (enumFromTo 0 (pred n)) l
+    return s
 
-sGetAttrib :: SEXP a -> IO (SEXP (Maybe SLIST))
-sGetAttrib = SEXP .=< rATTRIB . unSEXP
+sATTRIB :: SEXP a -> IO (SEXP (Maybe SLIST))
+sATTRIB = SEXP .=< rATTRIB . unSEXP
 
-sSetAttrib :: SEXP a -> SEXP (Maybe SLIST) -> IO ()
-sSetAttrib s = rSET_ATTRIB (unSEXP s) . unSEXP
+sSET_ATTRIB :: SEXP a -> SEXP (Maybe SLIST) -> IO ()
+sSET_ATTRIB s = rSET_ATTRIB (unSEXP s) . unSEXP
+
+sGetAttrib :: SEXP a -> String -> IO SEXPa
+sGetAttrib s a = SEXP =.< rGetAttrib (unSEXP s) =<< rInstall a
+
+sSetAttrib :: SEXP a -> String -> SEXP b -> IO ()
+sSetAttrib s a v = do
+  a <- rInstall a
+  rSetAttrib (unSEXP s) a (unSEXP v)
 
 sEval :: SEXPa -> SEXP SENV -> IO SEXPa
 sEval s e = SEXP =.< rEval (unSEXP s) (unSEXP e)

@@ -21,6 +21,7 @@ module Foreign.R.Types
   , SENV(..)
   , SLANG(..)
   , SCLO(..)
+  , SSPECIAL, SBUILTIN
   , SCHAR
   , SLGL(..)
   , SINT
@@ -146,6 +147,12 @@ data SLANG = SLANG
   , slangCDR :: SEXP (Maybe SLIST)
   }
 instance SType SLANG where sTypeOf _ = LANGSXP
+
+data SSPECIAL
+instance SType SSPECIAL where sTypeOf _ = SPECIALSXP
+
+data SBUILTIN
+instance SType SBUILTIN where sTypeOf _ = BUILTINSXP
 
 type SCHAR = CChar
 instance SType (Vector SCHAR) where sTypeOf _ = CHARSXP
