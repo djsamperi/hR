@@ -9,7 +9,7 @@ AC_ARG_WITH(R,
 	    [],
 	    [with_R=yes])
 
-AS_IF([test "$with_R" == yes],
+AS_IF([test "$with_R" = yes],
       [AC_PATH_PROG([R_BIN], [R])],
       [test "$with_R" != no],
       [R_BIN="$with_R"])
@@ -19,9 +19,9 @@ AC_MSG_CHECKING([R_HOME])
 R_HOME=`env -i $R_BIN RHOME 2>&AS_MESSAGE_LOG_FD`
 r_homeres=$?
 
-AS_IF([test $r_homeres -gt 0], 
+AS_IF([test $r_homeres -gt 0 -o -z "$R_HOME"], 
       [AC_MSG_RESULT([failed])
-      AC_MSG_FAILURE([$R_BIN RHOME failed])],
+      AC_MSG_FAILURE(["$R_BIN RHOME" failed])],
       [AC_MSG_RESULT([$R_HOME])])
 
 PKG_CHECK_MODULES([R], [libR])
