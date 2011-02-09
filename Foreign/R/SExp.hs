@@ -8,6 +8,7 @@ module Foreign.R.SExp
   , sEnvFrame, sEnvEnclos
   , SClo(..)
   , SLang(..)
+  , sLogical, fromSLogical
   , sImp
   , sCall
   ) where
@@ -231,6 +232,15 @@ instance SData SLGL SLogical where
 instance SData (Vector SLGL) (Vector SLogical) where
   sImp = mapM sImp
   sExp = mapM sExp
+
+sLogical :: Bool -> SLogical
+sLogical False = FALSE
+sLogical True = TRUE
+
+fromSLogical :: SLogical -> Bool
+fromSLogical FALSE = False
+fromSLogical TRUE = True
+fromSLogical NA = error "Foreign.R.Types.fromSLogical: NA"
 
 instance SData SINT SInteger where
   sImp = return . ii
