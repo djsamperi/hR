@@ -11,7 +11,12 @@ import System.Directory
 import System.FilePath
 defhooks = autoconfUserHooks
 programs = 
-  [ simpleProgram "R"
+  [ (simpleProgram "R") {
+      programFindVersion = findProgramVersion "--version" $ \str ->
+	case words str of
+	    ("R":"version":ver:_) -> ver
+	    _ -> ""
+    }
   ]
 postconf args flags desc build = do
   confExists <- doesFileExist "configure"
@@ -20,10 +25,10 @@ postconf args flags desc build = do
   where 
     verb = fromFlag $ configVerbosity flags
     confargs = map pconfarg pconf
-    pconfarg p = "--with-" ++ programId p ++ "=" ++ programPath p ++ " " ++ unwords (programArgs p)
+    pconfarg p = "--with-" ++ programId p ++ "=" ++ programPath p ++ " " ++ unwords (programDefaultArgs p ++ programOverrideArgs p)
     pconf = mapMaybe (\p -> lookupProgram p (withPrograms build)) programs
 hooks = defhooks 
   { hookedPrograms = programs
   , postConf = postconf
   }
-main = defaultMainWithHooks defhooks
+main = defaultMainWithHooks hooks

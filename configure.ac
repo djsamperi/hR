@@ -1,6 +1,9 @@
 AC_INIT([Haskell R interface], [0.1], [dylan@dylex.net])
 AC_CONFIG_SRCDIR([hr.cabal])
 
+AC_ARG_WITH(compiler,
+	    [AC_HELP_STRING([--with-compiler=hc], [use specified haskell compiler (ignored)])])
+
 AC_ARG_WITH(R,
 	    [AC_HELP_STRING([--with-R=R], [use specified R @<:@default=check@:>@])],
 	    [],

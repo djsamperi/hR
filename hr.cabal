@@ -1,6 +1,6 @@
 Name:		hr
 Version:	0.1
-Cabal-Version:  >= 1.6
+Cabal-Version:  >= 1.10
 Author:		Dylan Simon
 Maintainer:     dylan@dylex.net
 License:        BSD3
@@ -17,5 +17,6 @@ Library
     Exposed-modules:	Foreign.R, Foreign.R.Types, Foreign.R.Internals, Foreign.R.SEXP, Foreign.R.SExp, Foreign.R.Error, Foreign.R.Embedded
     Other-modules:      Foreign.R.Config, Foreign.R.Util
     C-sources:		src/hr.c
-    Extensions:         ForeignFunctionInterface, EmptyDataDecls
+    default-language:	Haskell98
+    default-extensions: ForeignFunctionInterface, EmptyDataDecls
     ghc-options:        -Wall -fno-warn-name-shadowing
