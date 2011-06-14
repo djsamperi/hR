@@ -1,5 +1,5 @@
 AC_INIT([Haskell R interface], [0.1], [dylan@dylex.net])
-AC_CONFIG_SRCDIR([hr.cabal])
+AC_CONFIG_SRCDIR([hR.cabal])
 
 AC_ARG_WITH(compiler, [AC_HELP_STRING([--with-compiler=hc], [use specified haskell compiler (ignored)])])
 AC_ARG_WITH(gcc, [AC_HELP_STRING([--with-gcc=gcc], [use specified C compiler])], [CC=$withval])
@@ -38,6 +38,6 @@ AC_SUBST([R_HOME])
 AC_SUBST([R_LIBS])
 AC_SUBST([R_CFLAGS])
 
-AC_CONFIG_FILES([hr.buildinfo Foreign/R/Config.hs])
+AC_CONFIG_FILES([hR.buildinfo Foreign/R/Config.hs])
 AC_CONFIG_HEADERS([src/config.h])
 AC_OUTPUT
