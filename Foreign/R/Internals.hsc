@@ -36,7 +36,7 @@ module Foreign.R.Internals
   ) where
 
 import Control.Monad
-import Foreign
+import Foreign hiding (void)
 import Foreign.C
 
 import Foreign.R.Util

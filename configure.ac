@@ -1,8 +1,8 @@
 AC_INIT([Haskell R interface], [0.1], [dylan@dylex.net])
 AC_CONFIG_SRCDIR([hr.cabal])
 
-AC_ARG_WITH(compiler,
-	    [AC_HELP_STRING([--with-compiler=hc], [use specified haskell compiler (ignored)])])
+AC_ARG_WITH(compiler, [AC_HELP_STRING([--with-compiler=hc], [use specified haskell compiler (ignored)])])
+AC_ARG_WITH(gcc, [AC_HELP_STRING([--with-gcc=gcc], [use specified C compiler])], [CC=$withval])
 
 AC_ARG_WITH(R,
 	    [AC_HELP_STRING([--with-R=R], [use specified R @<:@default=check@:>@])],
@@ -25,6 +25,10 @@ AS_IF([test $r_homeres -gt 0 -o -z "$R_HOME"],
       [AC_MSG_RESULT([$R_HOME])])
 
 PKG_CHECK_MODULES([R], [libR])
+_PKG_CONFIG([R_LIBDIR], [variable=rlibdir], [libR])
+AS_IF([test -n "$pkg_cv_R_LIBDIR"],
+      [R_LIBS="$R_LIBS -Wl,-rpath=$pkg_cv_R_LIBDIR"])
+
 LIBS="$LIBS $R_LIBS"
 CFLAGS="$CFLAGS $R_CFLAGS"
 
