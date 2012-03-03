@@ -35,8 +35,7 @@ module Foreign.R.Internals
   , rEval, rTryEval
   ) where
 
-import Control.Monad
-import Foreign hiding (void)
+import Foreign
 import Foreign.C
 
 import Foreign.R.Util

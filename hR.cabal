@@ -8,7 +8,7 @@ Synopsis:	R bindings and interface
 Description:	This package aims to provide a comprehensive interface to the R libraries and native data structures.  It is currently quite light on documentation but fairly complete in terms of functionality.  It requires libR.so, which is an optional component of R.
 Category:	Foreign,Math
 build-type:	Custom
-tested-with:    GHC == 7.0.2
+tested-with:    GHC == 7.0.2, GHC == 6.12.3
 extra-source-files: configure hR.buildinfo.in Foreign/R/Config.hs.in src/config.h.in
 
 Source-Repository head
