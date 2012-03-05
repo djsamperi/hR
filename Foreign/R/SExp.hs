@@ -257,8 +257,8 @@ instance SData (Vector SREAL) (Vector SReal) where
   sExp = return . map unsafeCoerce
 
 instance SData SCPLX SComplex where
-  sImp (x,y) = return (unsafeCoerce x:+unsafeCoerce y)
-  sExp (x :+ y) = return (unsafeCoerce x,unsafeCoerce y)
+  sImp (Rcomplex x y) = return $ unsafeCoerce x:+unsafeCoerce y
+  sExp (x :+ y) = return $ Rcomplex (unsafeCoerce x) (unsafeCoerce y)
 instance SData (Vector SCPLX) (Vector SComplex) where
   sImp = mapM sImp
   sExp = mapM sExp

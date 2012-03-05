@@ -18,7 +18,6 @@ module Foreign.R.Internals
   , rMkChar
   , rLOGICAL, rINTEGER
   , rREAL, rCOMPLEX
-  , rComplexPeek, rComplexPoke
   , rRAW
   , rSTRING_PTR
   , rSTRING_ELT, rSET_STRING_ELT
@@ -216,10 +215,9 @@ foreign import ccall safe "Rf_mkCharLen" r_MkCharLen :: CString -> CInt -> IO R_
 rMkChar :: String -> IO REXP
 rMkChar s = withCStringLen s $ \(s,l) -> r_MkCharLen s (ii l) >>= newREXP
 
-type R_Logical = CInt
-
-foreign import ccall safe "LOGICAL" r_LOGICAL :: R_EXP -> IO (Ptr CInt)
-rLOGICAL :: REXP -> IO (Ptr CInt)
+type Rlogical = CInt
+foreign import ccall safe "LOGICAL" r_LOGICAL :: R_EXP -> IO (Ptr Rlogical)
+rLOGICAL :: REXP -> IO (Ptr Rlogical)
 rLOGICAL s = withREXP s r_LOGICAL
 
 foreign import ccall safe "INTEGER" r_INTEGER :: R_EXP -> IO (Ptr CInt)
@@ -234,22 +232,20 @@ foreign import ccall safe "REAL" r_REAL :: R_EXP -> IO (Ptr CDouble)
 rREAL :: REXP -> IO (Ptr CDouble)
 rREAL s = withREXP s r_REAL
 
-data R_complex
-
-foreign import ccall safe "COMPLEX" r_COMPLEX :: R_EXP -> IO (Ptr R_complex)
-rCOMPLEX :: REXP -> IO (Ptr R_complex)
+foreign import ccall safe "COMPLEX" r_COMPLEX :: R_EXP -> IO (Ptr Rcomplex)
+rCOMPLEX :: REXP -> IO (Ptr Rcomplex)
 rCOMPLEX s = withREXP s r_COMPLEX
 
-rComplexPeek :: Ptr R_complex -> IO (CDouble, CDouble)
-rComplexPeek p = do
-  x <- (#peek Rcomplex, r) p
-  y <- (#peek Rcomplex, i) p
-  return (x,y)
-
-rComplexPoke :: Ptr R_complex -> (CDouble, CDouble) -> IO ()
-rComplexPoke p (x,y) = do
-  (#poke Rcomplex, r) p x
-  (#poke Rcomplex, i) p y
+instance Storable Rcomplex where
+  sizeOf ~(Rcomplex x y) = sizeOf x + sizeOf y
+  alignment ~(Rcomplex x _) = alignment x
+  peek p = do
+    x <- (#peek Rcomplex, r) p
+    y <- (#peek Rcomplex, i) p
+    return (Rcomplex x y)
+  poke p (Rcomplex x y) = do
+    (#poke Rcomplex, r) p x
+    (#poke Rcomplex, i) p y
 
 foreign import ccall unsafe "STRING_PTR" r_STRING_PTR :: R_EXP -> IO (Ptr R_EXP)
 rSTRING_PTR :: REXP -> IO (Ptr REXP)

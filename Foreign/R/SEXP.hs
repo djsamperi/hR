@@ -266,11 +266,6 @@ instance SDATA (Vector SCPLX) where
   sRead = sVectorRead
   sWrite = sVectorWrite
   sAlloc = sVectorAlloc
-instance Storable SCPLX where
-  sizeOf (x,y) = sizeOf x + sizeOf y
-  alignment (x,_) = alignment x
-  peek = rComplexPeek . castPtr
-  poke = rComplexPoke . castPtr
 instance SVector SCPLX where
   sVectorPtr = castPtr .=< rCOMPLEX . unSEXP
 

@@ -10,6 +10,7 @@ module Foreign.R.Types
   , SLogical(..)
   , SInteger
   , SReal
+  , Rcomplex(..)
   , SComplex, Complex((:+))
   , SString
   , SRaw
@@ -168,7 +169,8 @@ instance SType (Vector SINT) where sTypeOf _ = INTSXP
 type SREAL = CDouble
 instance SType (Vector SREAL) where sTypeOf _ = REALSXP
 
-type SCPLX = (CDouble, CDouble)
+data Rcomplex = Rcomplex CDouble CDouble
+type SCPLX = Rcomplex
 instance SType (Vector SCPLX) where sTypeOf _ = CPLXSXP
 
 type SSTR = SEXPVec SCHAR
