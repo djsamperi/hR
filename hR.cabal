@@ -1,5 +1,5 @@
 Name:		hR
-Version:	0.1
+Version:	0.1.1
 Cabal-Version:  >= 1.10
 Author:		Dylan Simon
 Maintainer:     dylan@dylex.net
@@ -21,5 +21,5 @@ Library
     Other-modules:      Foreign.R.Config, Foreign.R.Util
     C-sources:		src/hr.c
     default-language:	Haskell98
-    default-extensions: ForeignFunctionInterface, EmptyDataDecls
+    default-extensions:	ForeignFunctionInterface, EmptyDataDecls
     ghc-options:        -Wall -fno-warn-name-shadowing
