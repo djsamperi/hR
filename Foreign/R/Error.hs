@@ -34,7 +34,7 @@ rSetErrorHook :: RErrorHook -> IO ()
 foreign import ccall unsafe "R_SetErrorHook" r_SetErrorHook :: FunPtr R_ErrorHook -> IO ()
 rSetErrorHook f = r_SetErrorHook =<< r_ErrorHook (rErrorHook f)
 #else
-rSetErrorHook = return
+rSetErrorHook _ = return ()
 #endif
 
 data RError = RError { rerrorCall :: Maybe REXP, rerrorMsg :: String }
