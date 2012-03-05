@@ -1,4 +1,4 @@
-AC_INIT([Haskell R interface], [0.1], [dylan@dylex.net])
+AC_INIT([Haskell R interface], [0.1.1], [dylan@dylex.net])
 AC_CONFIG_SRCDIR([hR.cabal])
 
 AC_ARG_WITH(compiler, [AC_HELP_STRING([--with-compiler=hc], [use specified haskell compiler (ignored)])])
