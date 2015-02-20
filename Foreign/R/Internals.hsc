@@ -36,6 +36,7 @@ module Foreign.R.Internals
 
 import Foreign
 import Foreign.C
+import Foreign.ForeignPtr.Unsafe
 
 import Foreign.R.Util
 import Foreign.R.Types
