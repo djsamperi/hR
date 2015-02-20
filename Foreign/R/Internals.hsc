@@ -34,9 +34,12 @@ module Foreign.R.Internals
   , rEval, rTryEval
   ) where
 
-import Foreign
+import Data.Int (Int32)
+import Data.Word (Word8, Word32)
+import Foreign (Storable(..), Ptr, castPtr, void, FunPtr, nullPtr, alloca, toBool)
 import Foreign.C
-import Foreign.ForeignPtr.Unsafe
+import Foreign.ForeignPtr (newForeignPtr, newForeignPtr_, withForeignPtr)
+import Foreign.ForeignPtr.Unsafe (unsafeForeignPtrToPtr)
 
 import Foreign.R.Util
 import Foreign.R.Types
