@@ -13,6 +13,6 @@
     [@[sS].*@] and all others are functional equivalent representation and conversions
 
 -}
-module Foreign.R
+module Foreign.HR
   (
   ) where

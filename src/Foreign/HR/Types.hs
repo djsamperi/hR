@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances, GeneralizedNewtypeDeriving #-}
-module Foreign.R.Types
+module Foreign.HR.Types
   ( SEXPTYPE(..)
   , R_EXP, REXP
   , SEXP(..), SEXPa

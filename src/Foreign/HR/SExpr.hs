@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses, FunctionalDependencies, FlexibleInstances, UndecidableInstances, ScopedTypeVariables, FlexibleContexts #-}
-module Foreign.R.SExp
-  ( SExp(..)
+module Foreign.HR.SExpr
+  ( SExpr(..)
   , SList
   , SAssocs
   , SFormals
@@ -19,14 +19,14 @@ import Data.Maybe
 import Foreign.C.String
 import Unsafe.Coerce
 
-import Foreign.R.Util
-import Foreign.R.Types
-import Foreign.R.Internals
-import Foreign.R.SEXP
+import Foreign.HR.Util
+import Foreign.HR.Types
+import Foreign.HR.Internals
+import Foreign.HR.SEXP
 
-type SList = [(Maybe SName, SExp)]
+type SList = [(Maybe SName, SExpr)]
 
-type SAssocs = Map.Map SName SExp
+type SAssocs = Map.Map SName SExpr
 
 data SEnv 
   = SEnv (SEXP SENV)
@@ -35,20 +35,20 @@ data SEnv
   | SEnvBase
   deriving (Eq, Show)
 
-type SFormals = [(SName, Maybe SExp)]
+type SFormals = [(SName, Maybe SExpr)]
 
 data SClo = SClo
   { sCloFormals :: SFormals
-  , sCloBody :: SExp
+  , sCloBody :: SExpr
   , sCloEnv :: SEnv
   } deriving (Eq, Show)
 
 data SLang = SLang
-  { sLangFunction :: SExp -- ^ The function to call, usually a symbol (CAR)
+  { sLangFunction :: SExpr -- ^ The function to call, usually a symbol (CAR)
   , sLangArgs :: SList -- ^ Arguments to pass (CDR)
   } deriving (Eq, Show)
 
-data SExp
+data SExpr
   = SNull -- ^ The NULL value, empty lists, etc.
   | SSymbol !SName -- ^ An identifier
   | SUnboundValue
@@ -68,19 +68,19 @@ data SExp
   | SString (Vector SString)
   -- dotdotdot
   -- any -- ^ Pseudo-type only for signatures
-  | SVector (Vector SExp) -- ^ A list
-  | SExpression (Vector SExp) -- ^ A list of statements (language calls, symbols, etc.), as parsed from a file
+  | SVector (Vector SExpr) -- ^ A list
+  | SExpression (Vector SExpr) -- ^ A list of statements (language calls, symbols, etc.), as parsed from a file
   -- bytecode
   -- extptr
   -- weakref
   | SRaw (Vector SRaw)
   -- s4
 
-  | SAttributes SAssocs SExp -- ^ Transparent attributes
+  | SAttributes SAssocs SExpr -- ^ Transparent attributes
   | SFactor (Vector SString) (Vector SInteger)
   deriving (Show, Eq)
 
-instance NA SExp where
+instance NA SExpr where
   na = SLogical [na]
   isNA (SChar Nothing) = True
   isNA (SLogical [x]) = isNA x
@@ -267,7 +267,7 @@ instance SData (Vector SSTR) (Vector SString) where
   sImp = mapM sGet
   sExp = mapM sNew
 
-instance SData SANY SExp where
+instance SData SANY SExpr where
   sGet s' = do
     t <- sTYPEOF s'
     a <- liftMaybeSEXP (sGet . sJust) =<< sATTRIB s'
@@ -328,11 +328,11 @@ instance SData SANY SExp where
     return s
   sNew (SFactor l x) = sNew $ SAttributes (Map.fromList [("class", SString [Just "factor"]), ("levels", SString l)]) (SInteger x)
 
-instance SData (Vector SVEC) (Vector SExp) where
+instance SData (Vector SVEC) (Vector SExpr) where
   sImp = mapM sGet
   sExp = mapM sNew
 
-instance SData (Vector SEXPR) (Vector SExp) where
+instance SData (Vector SEXPR) (Vector SExpr) where
   sImp = mapM (sGet . unSEXPR)
   sExp = mapM (SEXPR .=< sNew)
 
@@ -349,7 +349,7 @@ sGetAttributes = sGet <=< sATTRIB
 sSetAttributes :: SData (Maybe SLIST) b => SEXP a -> b -> IO ()
 sSetAttributes s = sSET_ATTRIB s <=< sNew
 
-sCall :: SName -> SList -> IO SExp
+sCall :: SName -> SList -> IO SExpr
 sCall f a = do
   c :: SEXP SLANG <- sNew (SLang (SSymbol f) a)
   sGet =<< sEval (anySEXP c) =<< sGlobalEnv

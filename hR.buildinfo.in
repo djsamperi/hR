@@ -1,3 +1,0 @@
-include-dirs: @srcdir@/src
-cc-options: -DSTRICT_R_HEADERS -DR_NO_REMAP @R_CFLAGS@
-ld-options: @R_LIBS@

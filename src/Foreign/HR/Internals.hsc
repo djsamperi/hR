@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
-module Foreign.R.Internals
+module Foreign.HR.Internals
   ( withREXP
   , newREXP, extREXP
   , rNilValue
@@ -41,8 +41,9 @@ import Foreign.C
 import Foreign.ForeignPtr (newForeignPtr, newForeignPtr_, withForeignPtr)
 import Foreign.ForeignPtr.Unsafe (unsafeForeignPtrToPtr)
 
-import Foreign.R.Util
-import Foreign.R.Types
+import Foreign.HR.Util
+import Foreign.HR.Types
+import Debug.Trace
 
 #include <Rinternals.h>
 
@@ -104,14 +105,27 @@ withREXP = withForeignPtr
 extREXP :: R_EXP -> IO REXP
 extREXP = newForeignPtr_
 
+#ifdef DELAYPEEK
+
 #let extsexp f = "\
-foreign import ccall unsafe \"&R_%1$s\" r_%1$s_ptr :: Ptr R_EXP\n\
-r_%1$s :: IO R_EXP\n\
-r_%1$s = peek r_%1$s_ptr\n\
-r%1$s :: IO REXP\n\
-r%1$s = extREXP =<< r_%1$s\n\
-", #f
---"
+foreign import ccall unsafe \"&R_%s\" r_%s_ptr :: Ptr R_EXP\n\
+r_%s :: IO R_EXP\n\
+r_%s = trace \"PEEK\" peek r_%s_ptr\n\
+r%s :: IO REXP\n\
+r%s = extREXP =<< r_%s\n\
+", #f,#f,#f,#f,#f,#f,#f,#f ""
+
+#else
+
+#let extsexp f = "\
+foreign import ccall unsafe \"&R_%s\" r_%s_ptr :: Ptr R_EXP\n\
+r_%s :: IO R_EXP\n\
+r_%s = peek r_%s_ptr\n\
+r%s :: IO REXP\n\
+r%s = extREXP =<< r_%s\n\
+", #f,#f,#f,#f,#f,#f,#f,#f ""
+
+#endif
 
 #extsexp NilValue
 #extsexp UnboundValue
@@ -162,16 +176,16 @@ instance Storable REXP where
   poke p v = withREXP v $ poke (castPtr p)
 
 #let sexpget f, ct, t = "\
-foreign import ccall unsafe \"%1$s\" r_%1$s :: R_EXP -> IO %2$s\n\
-r%1$s :: REXP -> IO %3$s\n\
-r%1$s s = withREXP s $ r_%1$s >=>\
-", #f, #ct, #t
+foreign import ccall unsafe \"%s\" r_%s :: R_EXP -> IO %s\n\
+r%s :: REXP -> IO %s\n\
+r%s s = withREXP s $ r_%s >=>\
+", #f,#f,#ct,#f,#t,#f,#f,#f
 #let sexpfun f = " newREXP", ({ hsc_sexpget(f, R_EXP, REXP) })
 #let sexpset f = "\
-foreign import ccall safe \"%1$s\" r_%1$s :: R_EXP -> R_EXP -> IO ()\n\
-r%1$s :: REXP -> REXP -> IO ()\n\
-r%1$s s v = withREXP s $ withREXP v . r_%1$s\
-", "SET" #f
+foreign import ccall safe \"%s\" r_%s :: R_EXP -> R_EXP -> IO ()\n\
+r%s :: REXP -> REXP -> IO ()\n\
+r%s s v = withREXP s $ withREXP v . r_%s\
+", "SET" #f,"SET" #f,"SET" #f,"SET" #f,"SET" #f,"SET" #f
 --"
 
 #sexpget TYPEOF, CInt, SEXPTYPE

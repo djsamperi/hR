@@ -1,4 +1,4 @@
-module Foreign.R.Util 
+module Foreign.HR.Util 
   ( ii
   , (>.)
   , (>.=)

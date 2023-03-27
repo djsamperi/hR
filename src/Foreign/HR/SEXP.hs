@@ -1,5 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables, TypeSynonymInstances, FlexibleContexts, FlexibleInstances, StandaloneDeriving, GeneralizedNewtypeDeriving #-}
-module Foreign.R.SEXP
+{-# LANGUAGE PackageImports #-}
+
+module Foreign.HR.SEXP
   ( sTYPEOF
   , unsafeCastSEXP, castSEXP, anySEXP
   , maybeSEXP, liftMaybeSEXP
@@ -19,9 +21,9 @@ import Control.Monad
 import Foreign
 import Foreign.C.String
 
-import Foreign.R.Util
-import Foreign.R.Types
-import Foreign.R.Internals
+import Foreign.HR.Util
+import Foreign.HR.Types
+import Foreign.HR.Internals
 
 unsafeCastSEXP :: SEXP a -> SEXP b
 unsafeCastSEXP = SEXP . unSEXP
@@ -99,7 +101,7 @@ sBlankString = SEXP =.< rBlankString
 anySEXP :: SEXP a -> SEXPa
 anySEXP = unsafeCastSEXP
 
-castSEXP :: forall a m . (Monad m, SType a) => SEXPa -> IO (m (SEXP a))
+castSEXP :: forall a m . (MonadFail m, Monad m, SType a) => SEXPa -> IO (m (SEXP a))
 castSEXP s = do
   t <- sTYPEOF s
   return $ if t == sTypeOf (undefined :: a)

@@ -1,25 +1,32 @@
 Name:		hR
-Version:	0.1.1
-Cabal-Version:  >= 1.10
-Author:		Dylan Simon
-Maintainer:     dylan@dylex.net
+Version:	0.1.2
+Cabal-Version:  >= 1.9
+Author:		Dylan Simon, Dominick Samperi
+Maintainer:     djsamperi@gmail.com
 License:        BSD3
 Synopsis:	R bindings and interface
 Description:	This package aims to provide a comprehensive interface to the R libraries and native data structures.  It is currently quite light on documentation but fairly complete in terms of functionality.  It requires libR.so, which is an optional component of R.
 Category:	Foreign,Math
 build-type:	Custom
-tested-with:    GHC == 7.6.3
-extra-source-files: configure hR.buildinfo.in Foreign/R/Config.hs.in src/config.h.in
+tested-with:    GHC == 9.2.7
+extra-source-files: configure
 
 Source-Repository head
     Type:	darcs
     Location:	http://hub.darcs.net/dylex/hr
 
 Library
-    Build-depends:	base == 4.*, unix, array, containers
-    Exposed-modules:	Foreign.R, Foreign.R.Types, Foreign.R.Internals, Foreign.R.SEXP, Foreign.R.SExp, Foreign.R.Error, Foreign.R.Embedded
-    Other-modules:      Foreign.R.Config, Foreign.R.Util
+    Build-depends:	base == 4.*, process, array, containers
+    Exposed-modules:	Foreign.HR, Foreign.HR.Error, Foreign.HR.Types, Foreign.HR.Internals, Foreign.HR.SEXP, Foreign.HR.SExpr, Foreign.HR.Embedded
+    Other-modules:      Foreign.HR.Util
     C-sources:		src/hr.c
-    default-language:	Haskell98
+    hs-source-dirs:     src
+    default-language:	Haskell2010
     default-extensions:	ForeignFunctionInterface, EmptyDataDecls
     ghc-options:        -Wall -fno-warn-name-shadowing
+    cpp-options:        -DDELAYPEEK
+    
+executable hr
+    main-is: repl.hs
+    hs-source-dirs: app
+    build-depends: base >= 4.0, hR

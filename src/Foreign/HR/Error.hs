@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP, DeriveDataTypeable #-}
-module Foreign.R.Error
+module Foreign.HR.Error
   ( RError(..)
   , rThrowErrors
   , catchRErrors
@@ -7,7 +7,7 @@ module Foreign.R.Error
   , rWarning, rWarningCall
   ) where
 
-#include "config.h"
+-- #include "/home/dsamperi/github/hR/src/config.h"
 
 import Prelude hiding (catch)
 import Control.Exception
@@ -15,8 +15,8 @@ import Data.Typeable
 import Foreign
 import Foreign.C
 
-import Foreign.R.Types
-import Foreign.R.Internals
+import Foreign.HR.Types
+import Foreign.HR.Internals
 
 type R_ErrorHook = R_EXP -> CString -> IO ()
 type RErrorHook = REXP -> String -> IO ()
@@ -62,10 +62,9 @@ foreign import ccall safe "Rf_warning" r_Warning :: CString -> CString -> IO ()
 rWarning :: String -> IO ()
 rWarning m = withCString m $ withCString "%s" . r_Warning
 
-foreign import ccall safe "Rf_warningcall" r_WarningCall :: R_EXP -> CString -> CString -> IO ()
-rWarningCall :: REXP -> String -> IO ()
+foreign import ccall safe "Rf_warningcall" r_WarningCall :: Foreign.HR.Types.R_EXP -> CString -> CString -> IO ()
+rWarningCall :: Foreign.HR.Types.REXP -> String -> IO ()
 rWarningCall s m = withREXP s $ \s -> withCString m (withCString "%s" . r_WarningCall s)
-
 
 catchRErrors :: IO a -> IO a
 catchRErrors f = catch f $ \(RError c m) ->
